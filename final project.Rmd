@@ -34,11 +34,10 @@ The goal of your project is to predict the manner in which they did the exercise
 
 ### Read train and test input data
 ```{r}
-# Ori_training <- read.csv(
-#   url('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'))
-# Ori_testing <- read.csv(url('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'))
-# write.csv(Ori_training,'./data/pml-training.csv'); rm(Ori_training)
-# write.csv(Ori_testing,'./data/pml-testing.csv');rm(Ori_testing)
+Ori_training <- read.csv(url('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'))
+Ori_testing <- read.csv(url('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'))
+write.csv(Ori_training,'./data/pml-training.csv'); rm(Ori_training)
+write.csv(Ori_testing,'./data/pml-testing.csv');rm(Ori_testing)
 train_in <- read.csv('./data/pml-training.csv', header=T)[,-c(1:8)]
 valid_in <- read.csv('./data/pml-testing.csv', header=T)[,-c(1:8)]
 ```
@@ -112,7 +111,7 @@ set.seed(12345)
 library(rpart)
 library(rpart.plot)
 library(rattle)
-# decisionTreeMod1 <- train(classe ~ ., data=trainData, trControl = control, method="rpart", tuneLength = 5)
+decisionTreeMod1 <- train(classe ~ ., data=trainData, trControl = control, method="rpart", tuneLength = 5)
 fancyRpartPlot(decisionTreeMod1$finalModel)
 ```
 
@@ -141,7 +140,7 @@ We see that the accuracy rate of the model is low: **0.489**  and therefore the 
 We first determine the model
 ```{r}
 library(randomForest)
-# modRF1 <- randomForest(as.factor(classe) ~ ., data = trainData, importance=TRUE)
+modRF1 <- randomForest(as.factor(classe) ~ ., data = trainData, importance=TRUE)
 ```
 
 We then validate the model obtained model “modRF1” on the test data to find out how well it performs by looking at the Accuracy variable
@@ -167,7 +166,7 @@ plot(cmrf$table, col = cmrf$byClass,
 
 ### Prediction with support vector machine:
 ```{r}
-# mod_svm <- train(classe~., data=trainData, method="svmLinear", trControl = control, tuneLength = 5, verbose = F)
+mod_svm <- train(classe~., data=trainData, method="svmLinear", trControl = control, tuneLength = 5, verbose = F)
 ```
 
 ```{r}
