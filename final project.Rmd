@@ -1,0 +1,194 @@
+---
+title: "Final project"
+author: "Ibrahim H. Elkhidir"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    keep_md: yes
+---
+
+```{r setup,cache=FALSE, include=FALSE,warning = FALSE,message = FALSE}
+knitr::opts_chunk$set(echo = TRUE,cache.path = '.cache/', fig.path = 'fig/',dpi = 100)
+
+source <- 'http://groupware.les.inf.puc-rio.br/har'
+
+```
+
+
+# Background
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: (http://groupware.les.inf.puc-rio.br/har) (see the section on the Weight Lifting Exercise Dataset).
+
+The training data for this project are available [here](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
+
+The test data are available 
+[here](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
+
+The data for this project come from this source: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har. If you use the document you create for this class for any purpose please cite them as they have been very generous in allowing their data to be used for this kind of assignment.
+
+
+
+### What you should submit  
+
+The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. You may use any of the other variables to predict with. You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases. 
+
+
+### Read train and test input data
+```{r}
+# Ori_training <- read.csv(
+#   url('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'))
+# Ori_testing <- read.csv(url('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'))
+# write.csv(Ori_training,'./data/pml-training.csv'); rm(Ori_training)
+# write.csv(Ori_testing,'./data/pml-testing.csv');rm(Ori_testing)
+train_in <- read.csv('./data/pml-training.csv', header=T)[,-c(1:8)]
+valid_in <- read.csv('./data/pml-testing.csv', header=T)[,-c(1:8)]
+```
+
+
+
+### Data preprocessing: 
+
+
+```{r}
+# Data partitioning:
+trainData <- train_in[, colSums(is.na(train_in)) == 0]
+validData <- valid_in[, colSums(is.na(valid_in)) == 0]
+set.seed(1234) 
+inTrain <- createDataPartition(trainData$classe, p = 0.7, list = FALSE)
+trainData <- trainData[inTrain, ]
+testData <- trainData[-inTrain, ]
+
+# remove near zero value
+NZV <- nearZeroVar(trainData)
+trainData <- trainData[, -NZV]
+testData  <- testData[, -NZV]
+
+dim(trainData)
+
+dim(testData)
+```
+
+
+#### The following correlation plot uses the following parameters (source: CRAN Package ***‘corrplot’***):  
+* **“FPC”:** the first principal component order.  
+* **“AOE”:** the angular order.  
+* **“tl.cex”:** Numeric, for the size of text label (variable names).  
+* **“tl.col”:** The color of text label.  
+
+```{r,fig.width=10,fig.height=10}
+library(corrplot)
+cor_mat <- cor(trainData[, -53])
+corrplot(cor_mat, order = "FPC", method = "color", type = "upper", 
+         tl.cex = 0.8, tl.col = rgb(0, 0, 0))
+```
+
+To obtain the names of the variables we do the following: we use the findCorrelation function to search for highly correlated attributes with a cut off equal to **0.75**.  
+
+```{r}
+highlyCorrelated = findCorrelation(cor_mat, cutoff=0.75)
+```  
+We then obtain the names of highly correlated attributes  
+```{r}
+names(trainData)[highlyCorrelated]
+```
+
+
+---
+
+# Model creation:
+For this project we will use two different algorithms, classification trees and random forests, to predict the outcome.
+
+* classification trees
+* random forests
+* support vector machine
+
+```{r}
+control <- trainControl(method="cv", number=3, verboseIter=F)
+```
+
+### Prediction with classification trees
+We first obtail the model, and then we use the fancyRpartPlot() function to plot the classification tree as a dendogram.
+```{r}
+set.seed(12345)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+# decisionTreeMod1 <- train(classe ~ ., data=trainData, trControl = control, method="rpart", tuneLength = 5)
+fancyRpartPlot(decisionTreeMod1$finalModel)
+```
+
+We then validate the model “decisionTreeModel” on the testData to find out how well it performs by looking at the accuracy variable.
+
+```{r}
+predictTreeMod1 <- predict(decisionTreeMod1, testData)
+cmtree <- confusionMatrix(predictTreeMod1, factor(testData$classe))
+cmtree
+```
+
+plot matrix results
+```{r}
+# plot matrix results
+plot(cmtree$table, col = cmtree$byClass, 
+     # main = paste("Decision Tree - Accuracy =", round(cmtree$overall['Accuracy'], 4))
+     main=bquote(paste("Decision Tree - Accuracy", NULL%~~%NULL,
+                         .(round(cmtree$overall['Accuracy'], 4))))
+     )
+```
+  
+We see that the accuracy rate of the model is low: **0.489**  and therefore the out-of-sample-error is considerable.
+
+
+### Prediction with Random Forest
+We first determine the model
+```{r}
+library(randomForest)
+# modRF1 <- randomForest(as.factor(classe) ~ ., data = trainData, importance=TRUE)
+```
+
+We then validate the model obtained model “modRF1” on the test data to find out how well it performs by looking at the Accuracy variable
+```{r}
+predictRF1 <- predict(modRF1, newdata=testData)
+cmrf <- confusionMatrix(predictRF1, factor(testData$classe))
+cmrf
+```
+
+##### The accuracy rate using the random forest is very high: Accuracy $\approx$ 1 and therefore the out-of-sample-error is equal to 0***. But it might be due to overfitting.
+
+#### **Let’s plot the Random forest model**
+```{r}
+plot(modRF1)
+plot(cmrf$table, col = cmrf$byClass,
+      main=bquote(paste("Random Forest Confusion Matrix: Accuracy", NULL%~~%NULL,
+                         .(round(cmrf$overall['Accuracy'],4))))
+     )
+
+```
+
+##### The accuracy rate using the random forest is very high: Accuracy $\approx$ 1 
+
+### Prediction with support vector machine:
+```{r}
+# mod_svm <- train(classe~., data=trainData, method="svmLinear", trControl = control, tuneLength = 5, verbose = F)
+```
+
+```{r}
+pred_svm <- predict(mod_svm, testData)
+cmsvm <- confusionMatrix(pred_svm, factor(testData$classe))
+cmsvm
+```
+
+#### **Let’s plot the SVM model**
+```{r}
+plot(cmsvm$table, col = cmsvm$byClass,
+      main=bquote(paste("SVM Confusion Matrix: Accuracy", NULL%~~%NULL,
+                         .(round(cmsvm$overall['Accuracy'],4))))
+     )
+
+```  
+
+## **Applying the best model to the validation data**  
+  
+##### By comparing the accuracy rate values of the three models, it is clear the the **‘Random Forest’** model is the winner. So will use it on the validation data
+```{r}
+Results <- predict(modRF1, newdata=validData)
+Results
+```
