@@ -9,4 +9,4 @@ Report.Rmd is the r-markdown for the write-up
 Report.md is the markdown file (use this for github)
 models.R contains the barebone code for the models and prediction
 
-HTML markdown (report.html)
+HTML markdown (final project.html)
