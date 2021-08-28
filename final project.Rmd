@@ -175,14 +175,6 @@ cmsvm <- confusionMatrix(pred_svm, factor(testData$classe))
 cmsvm
 ```
 
-#### **Let’s plot the SVM model**
-```{r}
-plot(cmsvm$table, col = cmsvm$byClass,
-      main=bquote(paste("SVM Confusion Matrix: Accuracy", NULL%~~%NULL,
-                         .(round(cmsvm$overall['Accuracy'],4))))
-     )
-
-```  
 
 ## **Applying the best model to the validation data**  
   
