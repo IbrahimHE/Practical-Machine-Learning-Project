@@ -319,17 +319,6 @@ cmsvm
 ## Balanced Accuracy      0.9190   0.8297   0.8723   0.8546   0.8391
 ```
 
-#### **Let’s plot the SVM model**
-
-```r
-plot(cmsvm$table, col = cmsvm$byClass,
-      main=bquote(paste("SVM Confusion Matrix: Accuracy", NULL%~~%NULL,
-                         .(round(cmsvm$overall['Accuracy'],4))))
-     )
-```
-
-![](fig/unnamed-chunk-15-1.png)<!-- -->
-
 ## **Applying the best model to the validation data**  
   
 ##### By comparing the accuracy rate values of the three models, it is clear the the **‘Random Forest’** model is the winner. So will use it on the validation data
