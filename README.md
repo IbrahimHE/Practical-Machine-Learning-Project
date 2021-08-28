@@ -10,4 +10,3 @@ Report.md is the markdown file (use this for github)
 models.R contains the barebone code for the models and prediction
 
 HTML markdown (report.html)
-Rpubs: https://rpubs.com/bzhang93/coursera-machine-learning-project
